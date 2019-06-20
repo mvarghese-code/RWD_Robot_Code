@@ -62,8 +62,8 @@ void operation_percent();
 void drive_values();
 
 //Added by Michael
-void print_data(uint16_t *ibus_data, int ch);
-
+void print_data(uint16_t &ibus_data, int ch);
+double interp(double point, double &table);
  
 struct ibus_state {
   uint_fast8_t state;
@@ -98,11 +98,12 @@ int main()
 	struct ibus_state *_state, statemain;
 	uint16_t *_data, datamain[14];
 	//Added by Michael--------------------------------------
-	uint8_t esc_ch[9] = [1,2,3,4,5];
+	uint8_t esc_ch[9] = [1,2,3,4,5,6,7,8,9];
 	
-	//Drive Logic--------------------------------------------
-	int turn = 0;
-	int temp_command[4] = [0,0,0,0];
+	//Logic--------------------------------------------
+	int drive = 0b0000;
+	int esc_command[4] = [0,0,0,0];
+	double drive_table[4][4]=[0,50,200,500][0,0.2,0.7,1.0];
 	///
 
 	///State------------------------------------------------
@@ -250,7 +251,6 @@ int main()
 					
 					//Adds dead-zone to ch 1 - i
 					//currently i max = 4
-					
 					for(i=0;i<4;i++){
 						
 						if(datamain[i]<1550 && datamain[i]>1450){
@@ -266,9 +266,9 @@ int main()
 				if (curms-prev100ms >= 100) {
 					prev100ms = curms;
 					// run 100ms tasks
-			
-				 printf("%d %d %d %d\n",datamain[0],datamain[1],datamain[2],datamain[3]);
-
+					if (robot_state==DEBUG){
+						print_data(*_data, 0);
+					}
 		
 				}
 				
@@ -440,5 +440,10 @@ void print_data(uint16_t *ibus_data, int ch){
 		printf("%d  \n",ibus_data[ch]);
 	}
 	
+}
+
+double interp(uint16_t ch1_in, uint16_t ch2_in){
+
+
 }
 	
