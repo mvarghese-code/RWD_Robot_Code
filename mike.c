@@ -31,10 +31,13 @@
 #include <stdio.h>
 #include <robotcontrol.h> // includes ALL Robot Control subsystems
 #include <rc/time.h>  				// For Time
+
+
 //Added by Michael
+//For ESC control
 #include <getopt.h>
 #include <signal.h>
-#include <rc/servo.h>
+#include <rc/servo.h>				//ESC Control pins '1-5', '0' will send signal to all pins
 #include <rc/adc.h>
 #include <rc/dsm.h>
 
@@ -107,11 +110,11 @@ int main()
 	///
 
 	///State------------------------------------------------
-	enum robot_state = [DEBUG, RUNNING, STOP, CALIBRATE];
+	enum robot_state = [INIT, DEBUG, RUNNING, STOP, CALIBRATE];
 	
 	////
 	
-	
+	robot_state = INIT;
 	_ch = &chmain;
 	_state = &statemain;
 	_data = datamain;
@@ -119,8 +122,8 @@ int main()
 	memset(_data,0,30);
 
 	//Added by Michael
-	rc_servo_init();
-	rc_servo_power_rail_en(1);
+	//rc_servo_init();
+	//rc_servo_power_rail_en(1);
 
 	//Setup Functions
 		// make sure another instance isn't running
@@ -153,7 +156,8 @@ int main()
 		// make our own safely.
 		rc_make_pid_file();
 		if (rc_servo_init()) return -1; //Initialize PRU
-		rc_servo_power_rail_en(1); //servo rails on
+		//-------------------------------------------------------
+		rc_servo_power_rail_en(1); //servo rails on DO NOT POWER RAILS in actual robot code
 
 		printf("\nPress and release pause button to turn green LED on and off\n");
 		printf("hold pause button down for 2 seconds to exit\n");
