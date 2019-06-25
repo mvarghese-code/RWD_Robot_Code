@@ -13,10 +13,10 @@
 #include <rc/i2c.h>
 
 //Must add i2c bus and address to 
-#DEFINE I2C_BUS 2
+#define I2C_BUS 1
 
 //Address of offensive arm encoder
-#DEFINE ENCODER_ADD
+#define ENCODER_ADD 0x38
 
 
 static int running = 0;
@@ -29,9 +29,17 @@ static void __signal_handler(__attribute__ ((unused)) int dummy)
 int main()
 {
         int i;
-		uint8_t q_encoder_pin[2]= [4,4];
+		uint8_t q_encoder_pin[2]= {4,4};
 		uint8_t i2c_data = 0;
+		uint16_t r_vel = 0;
+		uint16_t l_vel = 0;
+		uint32_t r_enc = 0;
+		uint32_t l_enc = 0;
 		
+		uint64_t prev10ms = 0;  	// init task timers
+		uint64_t prev40ms = 0;		// init task timers
+		uint64_t prev100ms = 0;		// init task timers
+		uint64_t curms; 			// init task timers
 		
         // initialize hardware first
         if(rc_encoder_init()){
@@ -55,15 +63,15 @@ int main()
         printf(" \n");
         while(running){
                 printf("\r");
-				/*
-				//Read and print quad encoder data
+				curms = rc_nanos_since_epoch()*0.000001;
+				
                 for(i=1;i<=4;i++){
+						
                         printf("%10d |", rc_encoder_read(q_encoder_pin[i]));
                 }
-				*/
-				//Read and print i2c data
-				rc_i2c_read(I2C_BUS,ENCODER_ADD, *i2c_data);
-				printf("%10d |", i2c_data);
+			
+				//rc_i2c_read(I2C_BUS,ENCODER_ADD, i2c_data);
+				//printf("%10d |", i2c_data);
                 fflush(stdout);
                 rc_usleep(50000);
         }
