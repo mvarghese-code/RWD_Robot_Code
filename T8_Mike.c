@@ -130,8 +130,12 @@ int main()
 	int drive_state = 0;
 	int esc_ch[5] = {1,2,3,4,5}; //ESC channels: 1 - R, 2 - L, 3 - O, 4 - EMR, 5 - EML
 	int esc_ctrl[5] = {0,0,0,0,0};
-
 	
+	//ESC Wake-up
+	int wake_up_s=3000;
+	int wake_up_state = 0;
+	int w_count = 0;
+	uint64_t wcurms = 0;
 	//double drive_table[4][4]={0,50,200,500}{0,0.2,0.7,1.0};
 	///
 
@@ -190,7 +194,12 @@ int main()
         }
 		//-------------------------------------------------------
 		//rc_servo_power_rail_en(1); //servo rails on DO NOT POWER RAILS in actual robot code
+		
+		///Wake up ESC
 		rc_servo_send_esc_pulse_normalized(1,-0.1);
+		printf("Waking up......\n");
+		rc_usleep(2000000);
+		
 		printf("\nPress and release pause button to turn green LED on and off\n");
 		printf("hold pause button down for 2 seconds to exit\n");
 
@@ -233,6 +242,7 @@ int main()
 							ibus_read(_state,_data,chmain);  			// add byte from _ch to _data packet being built
 						}				
 					}
+					
 
 				
 // 10ms Tasks ============================================================================
@@ -259,7 +269,8 @@ int main()
 					
 					//printf("%f %f\n", vel[0], vel[1]);//prints wheel vel Rotation/ms
 								
-
+					///Test out ESC in 1 direction
+					//rc_servo_send_esc_pulse_normalized(1,0);
 										
 				}
 					
@@ -280,11 +291,12 @@ int main()
 					//test motor
 					
 					
-					///Test out ESC in 1 direction
-					rc_servo_send_esc_pulse_normalized(1,0.9);
+					
 			
 					
-					
+					///Test out ESC in 1 direction
+					//rc_servo_send_esc_pulse_normalized(1,0);
+										
 					
 					// run 100ms tasks
 					//Drive=======================================================					
@@ -387,7 +399,8 @@ int main()
 					//Drive Commands======================================================
 					
 					///Prints ch1 and ch2
-					printf("%d %d\n", datamain[0], datamain[1]);
+					printf("%d %d %d %d %d %d\n", datamain[0], datamain[1],datamain[2], datamain[3],datamain[4], datamain[5]);
+					rc_servo_send_esc_pulse_normalized(1,1);
 					
 					//UNCOMMENT The bottom two lines to control robot with TXRX
 					
