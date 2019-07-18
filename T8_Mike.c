@@ -234,7 +234,8 @@ int main()
 //					printf("time is %" PRIu64 "\n",curms-prev10ms);
 
 					////Calculate Wheel Speed=============================================
-					rc_encoder_read(q_encoder_pin[i]);
+					wheel_enc_data[0]= rc_encoder_read(q_encoder_pin[0]);
+					wheel_enc_data[1] = rc_encoder_read(q_encoder_pin[1]]);
 					curms = rc_nanos_since_epoch()*0.000001;
 					vel[0] = (wheel_enc_data[0] - prev_wheel_enc_data[0])/(curms - prevE1ms);
 					prevE1ms = curms;
@@ -244,7 +245,11 @@ int main()
 					prev50ms = curms;
 					//=====================================================================
 					// run 50ms tasks
-					//encoder control			
+					//encoder control		
+					
+					prev_wheel_enc_data[0] = wheel_enc_data [0];
+					prev_wheel_enc_data[1] = wheel_enc_data [1];
+					
 					
 					printf("%f %f\n", vel[0], vel[1]);//prints wheel vel Rotation/ms
 								
