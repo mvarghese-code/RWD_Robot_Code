@@ -182,6 +182,12 @@ int main()
 		// make our own safely.
 		rc_make_pid_file();
 		if (rc_servo_init()) return -1; //Initialize PRU
+		
+		//init quad encoder
+		if(rc_encoder_init()){
+                fprintf(stderr,"ERROR: failed to run rc_encoder_init\n");
+                return -1;
+        }
 		//-------------------------------------------------------
 		//rc_servo_power_rail_en(1); //servo rails on DO NOT POWER RAILS in actual robot code
 		rc_servo_send_esc_pulse_normalized(1,-0.1);
@@ -235,7 +241,7 @@ int main()
 
 					////Calculate Wheel Speed=============================================
 					wheel_enc_data[0]= rc_encoder_read(q_encoder_pin[0]);
-					wheel_enc_data[1] = rc_encoder_read(q_encoder_pin[1]]);
+					wheel_enc_data[1] = rc_encoder_read(q_encoder_pin[1]);
 					//curms = rc_nanos_since_epoch()*0.000001;
 					vel[0] = (wheel_enc_data[0] - prev_wheel_enc_data[0])/(curms - prevE1ms);
 					prevE1ms = curms;
@@ -251,7 +257,7 @@ int main()
 					prev_wheel_enc_data[1] = wheel_enc_data [1];
 					
 					
-					printf("%f %f\n", vel[0], vel[1]);//prints wheel vel Rotation/ms
+					//printf("%f %f\n", vel[0], vel[1]);//prints wheel vel Rotation/ms
 								
 
 										
