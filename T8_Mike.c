@@ -236,7 +236,7 @@ int main()
 					////Calculate Wheel Speed=============================================
 					wheel_enc_data[0]= rc_encoder_read(q_encoder_pin[0]);
 					wheel_enc_data[1] = rc_encoder_read(q_encoder_pin[1]]);
-					curms = rc_nanos_since_epoch()*0.000001;
+					//curms = rc_nanos_since_epoch()*0.000001;
 					vel[0] = (wheel_enc_data[0] - prev_wheel_enc_data[0])/(curms - prevE1ms);
 					prevE1ms = curms;
 					
