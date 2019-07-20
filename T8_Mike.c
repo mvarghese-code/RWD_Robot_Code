@@ -67,6 +67,14 @@ void drive_values();
 //Added by Michael
 //void print_data(uint16_t, *ibus_data, int ch);
 //double interp(double point, double *table);
+static int running = 1;
+typedef enum bot_state{
+        DISABLED,
+        DEBUG,
+        COMP,
+        SWEEP,
+        RADIO
+}bot_state;
  
 struct ibus_state {
   uint_fast8_t state;
@@ -130,8 +138,19 @@ int main()
 	int drive_state = 0;
 	int esc_ch[5] = {1,2,3,4,5}; //ESC channels: 1 - R, 2 - L, 3 - O, 4 - EMR, 5 - EML
 	int esc_ctrl[5] = {0,0,0,0,0};
-
 	
+	//ESC Wake-up
+	int wake_up_s=3000;
+	int wake_up_state = 0;
+	int w_count = 0;
+	uint64_t wcurms = 0;
+	
+	int frequency_hz = 50;  // default 50hz frequency to send pulses
+    int wakeup_en = 1;      // wakeup period enabled by default
+    double wakeup_s = 3.0;  // wakeup period in seconds
+    double wakeup_val = -0.1;// wakeup value
+    int min_us = RC_ESC_DEFAULT_MIN_US;
+    int max_us = RC_ESC_DEFAULT_MAX_US;
 	//double drive_table[4][4]={0,50,200,500}{0,0.2,0.7,1.0};
 	///
 
@@ -147,9 +166,8 @@ int main()
 	
 	memset(_data,0,30);
 
-	//Added by Michael
-	rc_servo_init();
-	rc_servo_power_rail_en(0);
+
+	
 
 	//Setup Functions
 		// make sure another instance isn't running
@@ -182,9 +200,41 @@ int main()
 		// make our own safely.
 		rc_make_pid_file();
 		if (rc_servo_init()) return -1; //Initialize PRU
+		if(rc_servo_set_esc_range(min_us,max_us)) return -1;
+		//rc_servo_power_rail_en(1);
+		
+		//init quad encoder
+		if(rc_encoder_init()){
+                fprintf(stderr,"ERROR: failed to run rc_encoder_init\n");
+                return -1;
+        }
 		//-------------------------------------------------------
 		//rc_servo_power_rail_en(1); //servo rails on DO NOT POWER RAILS in actual robot code
-		rc_servo_send_esc_pulse_normalized(1,-0.1);
+		
+		///Wake up ESC
+		/*
+		rc_servo_send_esc_pulse_normalized(8,-0.1);
+		printf("Waking up All channels......\n");
+		rc_usleep(2000000);
+		*/
+		
+		if(wakeup_en){
+                printf("waking ESC up from idle for 3 seconds\n");
+                for(i=0;i<=frequency_hz*wakeup_s;i++){
+                        if(running==0) return 0;
+                        if(rc_servo_send_esc_pulse_normalized(0,wakeup_val)==-1) return -1;
+                        rc_usleep(1000000/frequency_hz);
+                }
+                printf("done with wakeup period\n");
+        }
+		//rc_servo_send_pulse_us(2,1800);
+		//rc_servo_send_pulse_us(2,1200);
+		rc_servo_send_esc_pulse_normalized(0,1);
+		printf("Test pulse of 1200 us.....\n");
+		rc_usleep(1000000);
+		rc_servo_send_esc_pulse_normalized(0,0.0);
+		////===========================================
+		
 		printf("\nPress and release pause button to turn green LED on and off\n");
 		printf("hold pause button down for 2 seconds to exit\n");
 
@@ -227,6 +277,7 @@ int main()
 							ibus_read(_state,_data,chmain);  			// add byte from _ch to _data packet being built
 						}				
 					}
+					
 
 				
 // 10ms Tasks ============================================================================
@@ -234,8 +285,9 @@ int main()
 //					printf("time is %" PRIu64 "\n",curms-prev10ms);
 
 					////Calculate Wheel Speed=============================================
-					rc_encoder_read(q_encoder_pin[i]);
-					curms = rc_nanos_since_epoch()*0.000001;
+					wheel_enc_data[0]= rc_encoder_read(q_encoder_pin[0]);
+					wheel_enc_data[1] = rc_encoder_read(q_encoder_pin[1]);
+					//curms = rc_nanos_since_epoch()*0.000001;
 					vel[0] = (wheel_enc_data[0] - prev_wheel_enc_data[0])/(curms - prevE1ms);
 					prevE1ms = curms;
 					
@@ -244,11 +296,16 @@ int main()
 					prev50ms = curms;
 					//=====================================================================
 					// run 50ms tasks
-					//encoder control			
+					//encoder control		
 					
-					printf("%f %f\n", vel[0], vel[1]);//prints wheel vel Rotation/ms
+					prev_wheel_enc_data[0] = wheel_enc_data [0];
+					prev_wheel_enc_data[1] = wheel_enc_data [1];
+					
+					
+					//printf("%f %f\n", vel[0], vel[1]);//prints wheel vel Rotation/ms
 								
-
+					///Test out ESC in 1 direction
+					//rc_servo_send_esc_pulse_normalized(1,0);
 										
 				}
 					
@@ -269,11 +326,12 @@ int main()
 					//test motor
 					
 					
-					///Test out ESC in 1 direction
-					rc_servo_send_esc_pulse_normalized(1,0.9);
+					
 			
 					
-					
+					///Test out ESC in 1 direction
+					//rc_servo_send_esc_pulse_normalized(1,0);
+										
 					
 					// run 100ms tasks
 					//Drive=======================================================					
@@ -376,7 +434,8 @@ int main()
 					//Drive Commands======================================================
 					
 					///Prints ch1 and ch2
-					printf("%d %d\n", datamain[0], datamain[1]);
+					printf("%d %d %d %d %d %d\n", datamain[0], datamain[1],datamain[2], datamain[3],datamain[4], datamain[5]);
+					
 					
 					//UNCOMMENT The bottom two lines to control robot with TXRX
 					
